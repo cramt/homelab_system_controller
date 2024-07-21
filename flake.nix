@@ -48,7 +48,7 @@
 
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
-        my-crate = craneLib.buildPackage (commonArgs // {
+        homelab_discord_bot = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
 
           nativeBuildInputs = (commonArgs.nativeBuildInputs or [ ]) ++ [
@@ -64,12 +64,12 @@
       in
       {
         checks = {
-          inherit my-crate;
+          inherit homelab_discord_bot;
         };
 
         packages = {
-          default = my-crate;
-          inherit my-crate;
+          default = homelab_discord_bot;
+          inherit homelab_discord_bot;
         };
 
         devShells.default = craneLib.devShell {
