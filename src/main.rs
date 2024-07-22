@@ -60,7 +60,7 @@ async fn db_conn() -> Pool<Sqlite> {
 
 async fn start_scheduler(conn: Pool<Sqlite>, http: Arc<Http>) {
     let mut scheduler = AsyncScheduler::new();
-    scheduler.every(1.minutes()).run(move || {
+    scheduler.every(5.minutes()).run(move || {
         let conn = conn.clone();
         let http = http.clone();
         async move {
