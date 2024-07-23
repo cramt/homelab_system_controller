@@ -14,3 +14,4 @@ sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite", "migrate"] }
 clokwerk = "0.4"
 futures = "0.3"
 systemstat = { version = "0.2", features = ["serde"] }
+config = "0.14"

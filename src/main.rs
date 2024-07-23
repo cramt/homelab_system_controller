@@ -1,8 +1,10 @@
+pub mod config;
 pub mod db;
 pub mod get_ip;
 pub mod status;
 
 use clokwerk::{AsyncScheduler, TimeUnits};
+use config::settings;
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
 use poise::serenity_prelude::{self as serenity, Http};
@@ -51,7 +53,7 @@ async fn subscribed_channels(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 async fn db_conn() -> Pool<Sqlite> {
-    let pool = SqlitePool::connect(&std::env::var("DATABASE_URL").expect("missing DATABASE_URL"))
+    let pool = SqlitePool::connect(&settings().await.database_url)
         .await
         .unwrap();
     sqlx::migrate!("./migrations").run(&pool).await.unwrap();
@@ -90,7 +92,7 @@ async fn main() {
     let conn = db_conn().await;
     let discord_conn = conn.clone();
 
-    let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
+    let token = &settings().await.discord_token;
     let intents = serenity::GatewayIntents::non_privileged();
 
     let framework = poise::Framework::builder()
