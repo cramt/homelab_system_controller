@@ -4,6 +4,8 @@ use tokio::sync::OnceCell;
 pub struct Settings {
     pub discord_token: String,
     pub database_url: String,
+    pub allowed_guild: u64,
+    pub systemctl_path: String,
 }
 
 pub async fn settings() -> &'static Settings {

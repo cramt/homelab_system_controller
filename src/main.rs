@@ -14,6 +14,7 @@ use std::fmt::Write;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::join;
+use tokio::process::Command;
 
 struct Data {
     db_conn: Pool<Sqlite>,
@@ -21,21 +22,45 @@ struct Data {
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
-#[poise::command(slash_command)]
+#[poise::command(slash_command, guild_only)]
+async fn reboot(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("rebooting").await?;
+    Command::new(&settings().await.systemctl_path)
+        .arg("start")
+        .arg("systemd-reboot.service")
+        .output()
+        .await
+        .unwrap();
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
+async fn shutdown(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("rebooting").await?;
+    Command::new(&settings().await.systemctl_path)
+        .arg("start")
+        .arg("systemd-poweroff.service")
+        .output()
+        .await
+        .unwrap();
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
 async fn status(ctx: Context<'_>) -> Result<(), Error> {
     let status = Status::new().await.to_discord_reply();
     ctx.send(status).await?;
     Ok(())
 }
 
-#[poise::command(slash_command)]
+#[poise::command(slash_command, guild_only)]
 async fn subscribe_to_logs(ctx: Context<'_>) -> Result<(), Error> {
     db::subcribe_to_channel(&ctx.data().db_conn, ctx.channel_id()).await?;
     ctx.say("done").await?;
     Ok(())
 }
 
-#[poise::command(slash_command)]
+#[poise::command(slash_command, guild_only)]
 async fn subscribed_channels(ctx: Context<'_>) -> Result<(), Error> {
     let response = db::subcribed_channels(&ctx.data().db_conn)
         .await?
@@ -97,11 +122,25 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![status(), subscribed_channels(), subscribe_to_logs()],
+            commands: vec![status(), subscribed_channels(), subscribe_to_logs(), reboot(), shutdown()],
             ..Default::default()
         })
-        .setup(|ctx, _ready, framework| {
+        .setup(|ctx, ready, framework| {
             Box::pin(async move {
+                let allowed_guild_id = settings().await.allowed_guild;
+                let ctx = ctx.clone();
+                ready
+                    .clone()
+                    .guilds
+                    .into_iter()
+                    .filter(|x| x.id != allowed_guild_id)
+                    .map(|x| x.id.leave(&ctx.http))
+                    .collect::<FuturesUnordered<_>>()
+                    .collect::<Vec<_>>()
+                    .await
+                    .into_iter()
+                    .collect::<Result<Vec<_>, _>>()
+                    .unwrap();
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
                     db_conn: discord_conn,
