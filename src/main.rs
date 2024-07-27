@@ -36,7 +36,7 @@ async fn reboot(ctx: Context<'_>) -> Result<(), Error> {
 
 #[poise::command(slash_command, guild_only)]
 async fn shutdown(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.say("rebooting").await?;
+    ctx.say("shutting down").await?;
     Command::new(&settings().await.systemctl_path)
         .arg("start")
         .arg("systemd-poweroff.service")
