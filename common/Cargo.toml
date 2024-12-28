@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+postcard = { workspace = true }
+postcard-rpc = { workspace = true }
+postcard-schema = { workspace = true }
+serde = { workspace = true }

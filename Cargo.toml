@@ -1,5 +1,12 @@
 [workspace]
 resolver = "2"
 members = ["common", "host"]
+exclude = ["hardware_observer"]
 package.version = "0.1.0"
 metadata.crane.name = "homelab_system_controller"
+
+[workspace.dependencies]
+postcard = "1.1.1"
+postcard-rpc = "0.11.3"
+postcard-schema = "0.2.0"
+serde = { version = "1.0", default-features = false, features = ["derive"] }

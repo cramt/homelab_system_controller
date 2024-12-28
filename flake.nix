@@ -81,6 +81,7 @@
             (craneLib.fileset.commonCargoSources ./common)
             (craneLib.fileset.commonCargoSources crate)
             ./host/migrations
+            ./hardware_observer/memory.x
           ];
         };
 
