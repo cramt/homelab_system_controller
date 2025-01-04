@@ -130,7 +130,9 @@
         shellHook = ''
           touch secrets.env
           export SYSTEMCTL_PATH=${pkgs.systemd}/bin/systemctl
-          export $(grep -v '^#' secrets.env | xargs -d '\n')
+          set -a
+          source secrets.env
+          set +a
         '';
       };
     });

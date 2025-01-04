@@ -40,8 +40,8 @@ bind_interrupts!(struct USBIrqs {
     USBCTRL_IRQ => embassy_rp::usb::InterruptHandler<USB>;
 });
 
-const WIFI_NETWORK: &str = "The Gayze "; // change to your network SSID
-const WIFI_PASSWORD: &str = "FancyCurtain295"; // change to your network password
+const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
+const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
 
 #[embassy_executor::task]
 async fn cyw43_task(
