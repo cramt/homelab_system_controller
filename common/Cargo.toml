@@ -8,3 +8,6 @@ postcard = { workspace = true }
 postcard-rpc = { workspace = true }
 postcard-schema = { workspace = true }
 serde = { workspace = true }
+
+[features]
+use-std = []

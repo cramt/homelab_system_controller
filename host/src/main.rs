@@ -1,8 +1,12 @@
 pub mod config;
 pub mod db;
 pub mod get_ip;
+pub mod hardware_observer_client;
 pub mod status;
 
+use axum::extract::ws::WebSocket;
+use axum::extract::WebSocketUpgrade;
+use axum::Router;
 use clokwerk::{AsyncScheduler, TimeUnits};
 use config::settings;
 use futures::stream::FuturesUnordered;
@@ -11,10 +15,13 @@ use poise::serenity_prelude::{self as serenity, Http};
 use sqlx::{Pool, Sqlite, SqlitePool};
 use status::Status;
 use std::fmt::Write;
+use std::net::Ipv4Addr;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::join;
 use tokio::process::Command;
+use tower_http::cors::Any;
+use tower_http::cors::CorsLayer;
 
 struct Data {
     db_conn: Pool<Sqlite>,
@@ -112,6 +119,22 @@ async fn start_scheduler(conn: Pool<Sqlite>, http: Arc<Http>) {
     }
 }
 
+async fn handle_socket(mut socket: WebSocket) {
+    while let Some(msg) = socket.recv().await {
+        let msg = if let Ok(msg) = msg {
+            msg
+        } else {
+            // client disconnected
+            return;
+        };
+
+        if socket.send(msg).await.is_err() {
+            // client disconnected
+            return;
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let conn = db_conn().await;
@@ -122,7 +145,13 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![status(), subscribed_channels(), subscribe_to_logs(), reboot(), shutdown()],
+            commands: vec![
+                status(),
+                subscribed_channels(),
+                subscribe_to_logs(),
+                reboot(),
+                shutdown(),
+            ],
             ..Default::default()
         })
         .setup(|ctx, ready, framework| {
@@ -157,6 +186,29 @@ async fn main() {
     join!(
         async {
             client.start().await.unwrap();
+        },
+        async {
+            let app = Router::new()
+                .route(
+                    "/ws",
+                    axum::routing::any(|ws: WebSocketUpgrade| async {
+                        ws.on_upgrade(handle_socket)
+                    }),
+                )
+                .layer(
+                    CorsLayer::new()
+                        .allow_methods(Any)
+                        .allow_origin(Any)
+                        .allow_headers(Any)
+                        .allow_private_network(true),
+                );
+            let listener = tokio::net::TcpListener::bind((
+                Ipv4Addr::new(0, 0, 0, 0),
+                settings().await.listen_port,
+            ))
+            .await
+            .unwrap();
+            axum::serve(listener, app).await.unwrap();
         },
         start_scheduler(conn, http)
     );

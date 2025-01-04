@@ -16,3 +16,7 @@ futures = "0.3"
 systemstat = { version = "0.2", features = ["serde"] }
 config = "0.14"
 systemctl = "0.4"
+axum = { version = "0.8.1", features = ["ws"] }
+tower-http = { version = "0.6.2", features = ["cors"] }
+common = { path = "../common", features = ["use-std"] }
+postcard-rpc = { version = "0.11.3", features = ["use-std", "raw-nusb" ] }

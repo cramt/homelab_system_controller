@@ -37,6 +37,7 @@
             targets = [
               "thumbv6m-none-eabi"
               "x86_64-unknown-linux-gnu"
+              "wasm32-unknown-unknown"
             ];
           }
       );
@@ -123,6 +124,7 @@
           elf2uf2-rs
           picotool
           screen
+          dioxus-cli
         ];
 
         shellHook = ''

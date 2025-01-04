@@ -6,6 +6,7 @@ pub struct Settings {
     pub database_url: String,
     pub allowed_guild: u64,
     pub systemctl_path: String,
+    pub listen_port: u16,
 }
 
 pub async fn settings() -> &'static Settings {

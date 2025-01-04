@@ -101,8 +101,8 @@ static STORAGE: AppStorage = AppStorage::new();
 pub fn example_config() -> embassy_usb::Config<'static> {
     // Create embassy-usb Config
     let mut config = embassy_usb::Config::new(0x16c0, 0x27DD);
-    config.manufacturer = Some("Embassy");
-    config.product = Some("USB example");
+    config.manufacturer = Some("cramt");
+    config.product = Some("homelab_system_controller_hardware_observer");
     config.serial_number = Some("12345678");
 
     // Required for windows compatibility.
