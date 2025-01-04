@@ -11,6 +11,7 @@ use clokwerk::{AsyncScheduler, TimeUnits};
 use config::settings;
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
+use hardware_observer_client::HardwareObserverClient;
 use poise::serenity_prelude::{self as serenity, Http};
 use sqlx::{Pool, Sqlite, SqlitePool};
 use status::Status;
@@ -183,9 +184,13 @@ async fn main() {
         .await
         .unwrap();
     let http = client.http.clone();
+    let hardware_observer_client = HardwareObserverClient::new();
     join!(
         async {
             client.start().await.unwrap();
+        },
+        async {
+            hardware_observer_client.logging_run().await;
         },
         async {
             let app = Router::new()

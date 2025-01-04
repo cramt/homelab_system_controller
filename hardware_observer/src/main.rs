@@ -4,7 +4,7 @@
 
 use core::str::from_utf8;
 
-use common::{PingEndpoint, ENDPOINT_LIST, TOPICS_IN_LIST, TOPICS_OUT_LIST};
+use common::{PingEndpoint, ENDPOINT_LIST, PRODUCT_ID, TOPICS_IN_LIST, TOPICS_OUT_LIST, VENDOR_ID};
 use cyw43_pio::PioSpi;
 use embassy_executor::Spawner;
 use embassy_net::tcp::TcpSocket;
@@ -100,11 +100,7 @@ static STORAGE: AppStorage = AppStorage::new();
 
 pub fn example_config() -> embassy_usb::Config<'static> {
     // Create embassy-usb Config
-    let mut config = embassy_usb::Config::new(0x16c0, 0x27DD);
-    config.manufacturer = Some("cramt");
-    config.product = Some("homelab_system_controller_hardware_observer");
-    config.serial_number = Some("12345678");
-
+    let mut config = embassy_usb::Config::new(VENDOR_ID, PRODUCT_ID);
     // Required for windows compatibility.
     // https://developer.nordicsemi.com/nRF_Connect_SDK/doc/1.9.1/kconfig/CONFIG_CDC_ACM_IAD.html#help
     config.device_class = 0xEF;

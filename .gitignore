@@ -3,3 +3,4 @@ secrets.env
 db.db
 result
 hardware_observer/target
+host/target

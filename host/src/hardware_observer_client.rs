@@ -1,10 +1,10 @@
 use std::convert::Infallible;
 
-use common::PingEndpoint;
+use common::{PingEndpoint, PRODUCT_ID, VENDOR_ID};
 use postcard_rpc::{
     header::VarSeqKind,
     host_client::{HostClient, HostErr},
-    standard_icd::{WireError, ERROR_PATH},
+    standard_icd::{LoggingTopic, WireError, ERROR_PATH},
 };
 
 #[derive(Debug)]
@@ -26,7 +26,7 @@ pub struct HardwareObserverClient {
 impl HardwareObserverClient {
     pub fn new() -> Self {
         let client = HostClient::new_raw_nusb(
-            |d| d.product_string() == Some("homelab_system_controller_hardware_observer"),
+            |d| d.vendor_id() == VENDOR_ID && d.product_id() == PRODUCT_ID,
             ERROR_PATH,
             8,
             VarSeqKind::Seq2,
@@ -37,6 +37,16 @@ impl HardwareObserverClient {
     pub async fn ping(&self, id: u64) -> Result<u64, HardwareObserverError<Infallible>> {
         let val = self.client.send_resp::<PingEndpoint>(&id).await?;
         Ok(val)
+    }
+
+    pub async fn logging_run(&self) {
+        loop {
+            if let Ok(mut logsub) = self.client.subscribe_multi::<LoggingTopic>(64).await {
+                while let Ok(msg) = logsub.recv().await {
+                    println!("LOG: {msg}");
+                }
+            }
+        }
     }
 }
 
