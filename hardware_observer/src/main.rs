@@ -2,6 +2,8 @@
 #![no_main]
 #![allow(async_fn_in_trait)]
 
+pub mod logger;
+
 use core::str::from_utf8;
 
 use common::{PingEndpoint, ENDPOINT_LIST, PRODUCT_ID, TOPICS_IN_LIST, TOPICS_OUT_LIST, VENDOR_ID};
@@ -17,17 +19,18 @@ use embassy_rp::peripherals::{DMA_CH0, PIO0};
 use embassy_rp::pio::Pio;
 use embassy_rp::usb::Driver;
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
-use embassy_time::{Duration, Ticker, Timer};
+use embassy_time::{Duration, Timer};
 use embassy_usb::UsbDevice;
 use embedded_io_async::Write;
 use log::*;
+use logger::{logging_task, LOGGER};
+use postcard_rpc::define_dispatch;
 use postcard_rpc::header::VarHeader;
 use postcard_rpc::server::impls::embassy_usb_v0_3::dispatch_impl::{
     WireRxBuf, WireRxImpl, WireSpawnImpl, WireStorage, WireTxImpl,
 };
 use postcard_rpc::server::impls::embassy_usb_v0_3::PacketBuffers;
-use postcard_rpc::server::{Dispatch, Sender, Server};
-use postcard_rpc::{define_dispatch, sender_fmt};
+use postcard_rpc::server::{Dispatch, Server};
 use rand::RngCore;
 use static_cell::{ConstStaticCell, StaticCell};
 use {defmt_rtt as _, panic_probe as _};
@@ -66,23 +69,6 @@ pub async fn server_task(mut server: AppServer) {
         // If the host disconnects, we'll return an error here.
         // If this happens, just wait until the host reconnects
         let _ = server.run().await;
-    }
-}
-
-#[embassy_executor::task]
-pub async fn logging_task(sender: Sender<AppTx>) {
-    let mut ticker = Ticker::every(Duration::from_millis(1000));
-    let mut ctr = 0u16;
-    // TODO: use this to setup proper logging https://docs.rs/log/latest/log/fn.set_logger.html
-    loop {
-        ticker.next().await;
-        defmt::info!("logging");
-        if ctr & 0b1 != 0 {
-            let _ = sender.log_str("Hello world!").await;
-        } else {
-            let _ = sender_fmt!(sender, "formatted: {ctr}").await;
-        }
-        ctr = ctr.wrapping_add(1);
     }
 }
 
@@ -154,21 +140,24 @@ async fn main(spawner: Spawner) {
         dispatcher,
         vkk,
     );
-    let sender = server.sender();
-    spawner.must_spawn(usb_task(device));
-    spawner.must_spawn(server_task(server));
-    spawner.must_spawn(logging_task(sender));
+    Timer::after_millis(10000).await;
+    {
+        let sender = server.sender();
+        spawner.must_spawn(usb_task(device));
+        spawner.must_spawn(server_task(server));
+        sender.log_str("test").await;
+        let result = unsafe { log::set_logger_racy(&LOGGER) };
+        if result.is_err() {
+            let _ = sender.log_str("it failed sadge").await;
+        }
+        spawner.must_spawn(logging_task(sender));
+    }
+    info!("postcard_rpc initted");
 
     let mut rng = RoscRng;
 
     let fw = include_bytes!("../cyw43-firmware/43439A0.bin");
     let clm = include_bytes!("../cyw43-firmware/43439A0_clm.bin");
-    // To make flashing faster for development, you may want to flash the firmwares independently
-    // at hardcoded addresses, instead of baking them into the program with `include_bytes!`:
-    //     probe-rs download 43439A0.bin --binary-format bin --chip RP2040 --base-address 0x10100000
-    //     probe-rs download 43439A0_clm.bin --binary-format bin --chip RP2040 --base-address 0x10140000
-    // let fw = unsafe { core::slice::from_raw_parts(0x10100000 as *const u8, 230321) };
-    // let clm = unsafe { core::slice::from_raw_parts(0x10140000 as *const u8, 4752) };
 
     let pwr = Output::new(p.PIN_23, Level::Low);
     let cs = Output::new(p.PIN_25, Level::High);
@@ -194,12 +183,6 @@ async fn main(spawner: Spawner) {
         .await;
 
     let config = Config::dhcpv4(Default::default());
-    // Use static IP configuration instead of DHCP
-    //let config = embassy_net::Config::ipv4_static(embassy_net::StaticConfigV4 {
-    //    address: Ipv4Cidr::new(Ipv4Address::new(192, 168, 69, 2), 24),
-    //    dns_servers: Vec::new(),
-    //    gateway: Some(Ipv4Address::new(192, 168, 69, 1)),
-    //});
 
     // Generate random seed
     let seed = rng.next_u64();
