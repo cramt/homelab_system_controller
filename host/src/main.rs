@@ -189,6 +189,7 @@ async fn main() {
         async {
             client.start().await.unwrap();
         },
+        /*
         async {
             hardware_observer_client.logging_run().await;
         },
@@ -215,6 +216,7 @@ async fn main() {
             .unwrap();
             axum::serve(listener, app).await.unwrap();
         },
+        */
         start_scheduler(conn, http)
     );
 }
