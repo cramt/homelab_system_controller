@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-postcard = { workspace = true }
-postcard-rpc = { workspace = true }
-postcard-schema = { workspace = true }
-serde = { workspace = true }
+postcard = "1.1.1"
+postcard-rpc = "0.11.3"
+postcard-schema = "0.2.0"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
 
 [features]
 use-std = []

@@ -42,10 +42,20 @@
           }
       );
 
-      src = craneLib.cleanCargoSource ./.;
-
+      unfilteredRoot = ./.;
+      src = lib.fileset.toSource {
+        root = unfilteredRoot;
+        fileset =
+          lib.fileset.difference (lib.fileset.unions [
+            (craneLib.fileset.commonCargoSources unfilteredRoot)
+            ./host/migrations
+          ])
+          ./host/.cargo/config.toml;
+      };
       commonArgs = {
         inherit src;
+        cargoLock = ./host/Cargo.lock;
+        cargoToml = ./host/Cargo.toml;
         strictDeps = true;
 
         nativeBuildInputs = [
@@ -60,38 +70,15 @@
             pkgs.libiconv
             pkgs.darwin.apple_sdk.frameworks.Security
           ];
+        postUnpack = ''
+          cd $sourceRoot/host
+          sourceRoot="."
+        '';
       };
 
-      cargoArtifacts = craneLib.buildDepsOnly commonArgs;
-
-      individualCrateArgs =
-        commonArgs
+      host = craneLib.buildPackage (commonArgs
         // {
-          inherit cargoArtifacts;
-          inherit (craneLib.crateNameFromCargoToml {inherit src;}) version;
-          # NB: we disable tests since we'll run them all via cargo-nextest
-          doCheck = false;
-        };
-
-      fileSetForCrate = crate:
-        lib.fileset.toSource {
-          root = ./.;
-          fileset = lib.fileset.unions [
-            ./Cargo.toml
-            ./Cargo.lock
-            (craneLib.fileset.commonCargoSources ./common)
-            (craneLib.fileset.commonCargoSources crate)
-            ./host/migrations
-            ./hardware_observer/memory.x
-          ];
-        };
-
-      host = craneLib.buildPackage (individualCrateArgs
-        // {
-          pname = "host";
-          cargoExtraArgs = "-p host";
-          src = fileSetForCrate ./host;
-
+          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
           nativeBuildInputs =
             (commonArgs.nativeBuildInputs or [])
             ++ [
@@ -99,9 +86,9 @@
             ];
 
           preBuild = ''
-            export DATABASE_URL=sqlite:./db.sqlite3
+            export DATABASE_URL=sqlite:$(pwd)/db.sqlite3
             sqlx database create
-            sqlx migrate run --source host/migrations
+            sqlx migrate run
           '';
         });
     in {
