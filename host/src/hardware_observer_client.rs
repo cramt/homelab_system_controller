@@ -43,7 +43,7 @@ impl HardwareObserverClient {
         loop {
             if let Ok(mut logsub) = self.client.subscribe_multi::<LoggingTopic>(64).await {
                 while let Ok(msg) = logsub.recv().await {
-                    println!("LOG: {msg}");
+                    println!("HARDWARE OBSERVER: {msg}");
                 }
             }
         }

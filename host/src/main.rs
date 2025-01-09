@@ -194,6 +194,13 @@ async fn main() {
             hardware_observer_client.logging_run().await;
         },
         async {
+            loop {
+                println!("{:?}", hardware_observer_client.ping(1).await);
+                tokio::time::sleep(Duration::from_secs(5)).await
+            }
+        },
+        */
+        async {
             let app = Router::new()
                 .route(
                     "/ws",
@@ -216,7 +223,6 @@ async fn main() {
             .unwrap();
             axum::serve(listener, app).await.unwrap();
         },
-        */
         start_scheduler(conn, http)
     );
 }

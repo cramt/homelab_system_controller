@@ -32,5 +32,7 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 
 common = { path = "../common" }
 
+picoserve = { version = "0.13.3", features = ["embassy"] }
+
 [profile.dev]
 opt-level = "z"
