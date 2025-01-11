@@ -1,0 +1,11 @@
+pub mod bazarr;
+pub mod checkmark;
+pub mod error;
+pub mod foundry;
+pub mod jellyfin;
+pub mod prowlarr;
+pub mod qbit;
+pub mod radarr;
+pub mod servatrice;
+pub mod sonarr;
+pub mod spinner;

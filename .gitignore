@@ -4,3 +4,4 @@ db.db
 result
 hardware_observer/target
 host/target
+frontend/assets/tailwind.css

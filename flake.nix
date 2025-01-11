@@ -112,6 +112,8 @@
           picotool
           screen
           dioxus-cli
+          tailwindcss
+          concurrently
         ];
 
         shellHook = ''

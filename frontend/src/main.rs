@@ -1,15 +1,17 @@
-pub mod service_status;
+pub mod assets;
+pub mod services;
 
+use crate::services::Services;
 use dioxus::prelude::*;
-use service_status::ServiceStatus;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 enum Route {
     #[route("/")]
     Home {},
+    #[route("/services")]
+    Services {},
 }
 
-const FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
@@ -19,7 +21,6 @@ fn main() {
 #[component]
 fn App() -> Element {
     rsx! {
-        document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
         Router::<Route> {}
     }
@@ -27,7 +28,5 @@ fn App() -> Element {
 
 #[component]
 fn Home() -> Element {
-    rsx! {
-        ServiceStatus { url: "https://jellyfin.cramt.schniebster.dk/" }
-    }
+    rsx! {}
 }
