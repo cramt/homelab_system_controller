@@ -1,6 +1,7 @@
+pub mod service_status;
+
 use dioxus::prelude::*;
-use futures::{SinkExt, StreamExt, TryStreamExt};
-use reqwest_websocket::Message;
+use service_status::ServiceStatus;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 enum Route {
@@ -25,54 +26,8 @@ fn App() -> Element {
 }
 
 #[component]
-pub fn Hero() -> Element {
-    let result = use_resource(move || async {
-        let websocket = reqwest_websocket::websocket("http://localhost:8989/ws")
-            .await
-            .unwrap();
-        let (mut sender, mut receiver) = websocket.split();
-        sender
-            .send(Message::Text("test from server".into()))
-            .await
-            .unwrap();
-        loop {
-            match receiver.try_next().await {
-                Err(_) => {
-                    break;
-                }
-                Ok(None) => {
-                    break;
-                }
-                Ok(Some(Message::Text(text))) => return text,
-                _ => {}
-            }
-        }
-        "bro".to_string()
-    });
-    match &*result.read_unchecked() {
-        Some(str) => {
-            // if it is, render the stories
-            rsx! {
-                div {
-                    "{str}"
-                }
-            }
-        }
-        _ => {
-            rsx! {
-                div {
-                    "test"
-                }
-            }
-        }
-    }
-}
-
-/// Home page
-#[component]
 fn Home() -> Element {
     rsx! {
-        Hero {}
-
+        ServiceStatus { url: "https://jellyfin.cramt.schniebster.dk/" }
     }
 }

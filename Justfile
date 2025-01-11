@@ -11,6 +11,7 @@ flash_pico:
     cd hardware_observer && CARGO_BUILD_TARGET=thumbv6m-none-eabi cargo run && sudo picotool reboot
 
 run_pico:
-    just flash_pico
+    (cd host && cargo build) &
+    (just flash_pico)
     sleep 1
     just run_host

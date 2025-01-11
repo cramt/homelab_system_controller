@@ -34,5 +34,7 @@ common = { path = "../common" }
 
 picoserve = { version = "0.13.3", features = ["embassy"] }
 
+konst = { version = "0.3.16", features = ["parsing"] }
+
 [profile.dev]
 opt-level = "z"

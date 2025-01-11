@@ -4,12 +4,14 @@
 
 pub mod logger;
 pub mod networking;
+pub mod pin_context;
 pub mod rpc;
 pub mod web;
 
 use embassy_executor::Spawner;
 use log::*;
 use networking::init_networking;
+use pin_context::PinContext;
 use rpc::init_rpc;
 use web::init_web;
 use {defmt_rtt as _, panic_probe as _};
@@ -25,9 +27,9 @@ async fn main(spawner: Spawner) {
     )
     .await;
 
-    init_web(spawner, stack).await;
+    let pin_context = PinContext::new(p.ADC, p.PIN_26, p.PIN_22);
+
+    init_web(spawner, stack, pin_context).await;
 
     info!("everything initted");
-
-    core::future::pending::<()>().await;
 }

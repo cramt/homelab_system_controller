@@ -41,9 +41,14 @@ impl HardwareObserverClient {
 
     pub async fn logging_run(&self) {
         loop {
+            let mut buffer = String::new();
             if let Ok(mut logsub) = self.client.subscribe_multi::<LoggingTopic>(64).await {
                 while let Ok(msg) = logsub.recv().await {
-                    println!("HARDWARE OBSERVER: {msg}");
+                    buffer.push_str(&msg);
+                    if let Some((pre, post)) = buffer.split_once("\n") {
+                        println!("HARDWARE OBSERVER: {pre}");
+                        buffer = post.to_string();
+                    }
                 }
             }
         }
