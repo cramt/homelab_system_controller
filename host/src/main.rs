@@ -184,7 +184,7 @@ async fn main() {
         .await
         .unwrap();
     let http = client.http.clone();
-    let hardware_observer_client = HardwareObserverClient::new();
+    //let hardware_observer_client = HardwareObserverClient::new();
     join!(
         async {
             client.start().await.unwrap();
