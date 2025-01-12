@@ -37,6 +37,8 @@ jobs:
           cd frontend
           npm ci
           dx bundle --release --platform web
+          cd target/dx/frontend/release/web/public/
+          mv index.html 404.html
       - name: Upload static files as artifact
         id: deployment
         uses: actions/upload-pages-artifact@v3
