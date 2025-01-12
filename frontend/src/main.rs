@@ -2,6 +2,7 @@ pub mod assets;
 pub mod services;
 
 use crate::services::Services;
+use cmd_proc_macro::cmd_execute;
 use dioxus::prelude::*;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
@@ -12,16 +13,18 @@ enum Route {
     Services {},
 }
 
-const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
-
 fn main() {
     dioxus::launch(App);
 }
 
 #[component]
 fn App() -> Element {
+    let tailwind =
+        std::str::from_utf8(cmd_execute!("cd $CARGO_MANIFEST_DIR && npm run build_css")).unwrap();
     rsx! {
-        document::Link { rel: "stylesheet", href: TAILWIND_CSS }
+        style {
+            {tailwind}
+        }
         Router::<Route> {}
     }
 }

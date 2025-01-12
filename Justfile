@@ -1,7 +1,5 @@
 dev_frontend:
-    cd frontend && concurrently \
-    "tailwindcss -i ./input.css -o ./assets/tailwind.css --watch" \
-    "CARGO_BUILD_TARGET=wasm32-unknown-unknown dx serve"
+    cd frontend && CARGO_BUILD_TARGET=wasm32-unknown-unknown dx serve
 
 run_host:
     cd host && cargo run

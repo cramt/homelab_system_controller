@@ -8,6 +8,7 @@ use service_status::ServiceStatus;
 
 #[component]
 pub fn Services() -> Element {
+    let domain = env!("BASE_DOMAIN");
     rsx! {
         div {
             p {
@@ -18,42 +19,42 @@ pub fn Services() -> Element {
         div {
             class: "flex flex-row flex-wrap gap-4 justify-center items-center content-center",
             ServiceStatus {
-                url: "https://jellyfin.cramt.schniebster.dk/",
+                url: format!("https://jellyfin.{domain}/"),
                 name: "jellyfin",
                 icon: rsx! { Jellyfin {}}
             }
             ServiceStatus {
-                url: "https://sonarr.cramt.schniebster.dk/",
+                url: format!("https://sonarr.{domain}/"),
                 name: "sonarr",
                 icon: rsx! { Sonarr {}}
             }
             ServiceStatus {
-                url: "https://radarr.cramt.schniebster.dk/",
+                url: format!("https://radarr.{domain}/"),
                 name: "radarr",
                 icon: rsx! { Radarr {}}
             }
             ServiceStatus {
-                url: "https://qbit.cramt.schniebster.dk/",
+                url: format!("https://qbit.{domain}/"),
                 name: "qbittorrent",
                 icon: rsx! { Qbit {}}
             }
             ServiceStatus {
-                url: "https://bazarr.cramt.schniebster.dk/",
+                url: format!("https://bazarr.{domain}/"),
                 name: "bazarr",
                 icon: rsx! { Bazarr {}}
             }
             ServiceStatus {
-                url: "https://foundry-a.cramt.schniebster.dk/",
+                url: format!("https://foundry-a.{domain}/"),
                 name: "foundry A",
                 icon: rsx! { Foundry {}}
             }
             ServiceStatus {
-                url: "https://prowlarr.cramt.schniebster.dk/",
+                url: format!("https://prowlarr.{domain}/"),
                 name: "prowlarr",
                 icon: rsx! { Prowlarr {}}
             }
             ServiceStatus {
-                url: "wss://cockatrice.cramt.schniebster.dk/servatrice",
+                url: format!("wss://cockatrice.{domain}/servatrice"),
                 name: "servatrice",
                 icon: rsx! { Servatrice {}}
             }

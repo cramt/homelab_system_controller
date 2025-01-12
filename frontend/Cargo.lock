@@ -153,6 +153,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmd-proc-macro"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2065670049eddd60918f2d88e0f6adfc5a1350953b990dc0ca57c3e2edd4cb9e"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "console_error_panic_hook"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -784,6 +794,7 @@ dependencies = [
 name = "frontend"
 version = "0.1.0"
 dependencies = [
+ "cmd-proc-macro",
  "dioxus",
  "futures",
  "reqwest",

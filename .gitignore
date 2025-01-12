@@ -5,3 +5,4 @@ result
 hardware_observer/target
 host/target
 frontend/assets/tailwind.css
+frontend/node_modules

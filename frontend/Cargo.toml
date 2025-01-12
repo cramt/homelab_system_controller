@@ -12,6 +12,7 @@ wasm-bindgen = "=0.2.97"
 reqwest = "0.12"
 reqwest-websocket = "0.4.4"
 futures = "0.3"
+cmd-proc-macro = "0.1.4"
 
 [features]
 default = ["web"]

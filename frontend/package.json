@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "build_css": "tailwindcss -i ./input.css -m 2> /dev/null"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
