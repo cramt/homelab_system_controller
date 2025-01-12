@@ -1,24 +1,11 @@
 [application]
 
-# App (Project) Name
-name = "frontend"
+name = "homelab_system_controller"
 
 [web.app]
 
-# HTML title tag content
-title = "frontend"
+title = "homelab_system_controller"
+base_path = "homelab_system_controller"
 
-# include `assets` in web platform
-[web.resource]
-
-# Additional CSS style files
-style = []
-
-# Additional JavaScript files
-script = []
-
-[web.resource.dev]
-
-# Javascript code file
-# serve: [dev-server] only
-script = []
+[web.wasm_opt]
+level = "z"
