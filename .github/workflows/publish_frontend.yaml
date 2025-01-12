@@ -17,8 +17,14 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      BASE_DOMAIN: ${{ secrets.BASE_DOMAIN }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: "npm"
+          cache-dependency-path: subdir/package-lock.json
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           target: "wasm32-unknown-unknown"
@@ -26,7 +32,9 @@ jobs:
       - uses: brndnmtthws/rust-action-cargo-binstall@v1
         with:
           packages: dioxus-cli
-      - run: cd frontend && dx bundle --release --platform web
+      - run: |
+          cd frontend && npm ci
+          cd frontend && dx bundle --release --platform web
       - name: Upload static files as artifact
         id: deployment
         uses: actions/upload-pages-artifact@v3
