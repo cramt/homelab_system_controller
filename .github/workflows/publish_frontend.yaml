@@ -29,9 +29,9 @@ jobs:
         with:
           target: "wasm32-unknown-unknown"
           cache-workspaces: "./frontend -> ./frontend/target"
-      - uses: brndnmtthws/rust-action-cargo-binstall@v1
+      - uses: taiki-e/install-action@v2
         with:
-          packages: dioxus-cli
+          tool: dioxus-cli
       - name: Build
         run: |
           cd frontend
