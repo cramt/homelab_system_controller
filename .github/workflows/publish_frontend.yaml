@@ -32,9 +32,11 @@ jobs:
       - uses: brndnmtthws/rust-action-cargo-binstall@v1
         with:
           packages: dioxus-cli
-      - run: |
-          cd frontend && npm ci
-          cd frontend && dx bundle --release --platform web
+      - name: Build
+        run: |
+          cd frontend
+          npm ci
+          dx bundle --release --platform web
       - name: Upload static files as artifact
         id: deployment
         uses: actions/upload-pages-artifact@v3
