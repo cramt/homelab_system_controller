@@ -1,6 +1,8 @@
 pub mod assets;
+pub mod hardware_status;
 pub mod services;
 
+use crate::hardware_status::HardwareStatus;
 use crate::services::Services;
 use cmd_proc_macro::cmd_execute;
 use dioxus::prelude::*;
@@ -11,6 +13,8 @@ enum Route {
     Home {},
     #[route("/services")]
     Services {},
+    #[route("/hardware_status")]
+    HardwareStatus {},
 }
 
 fn main() {
@@ -19,8 +23,10 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    let tailwind =
-        std::str::from_utf8(cmd_execute!("cd $CARGO_MANIFEST_DIR && npm run build_css")).unwrap();
+    let tailwind = std::str::from_utf8(cmd_execute!(
+        "cd $CARGO_MANIFEST_DIR && npm run --silent build_css"
+    ))
+    .unwrap();
     rsx! {
         style {
             {tailwind}
@@ -31,5 +37,23 @@ fn App() -> Element {
 
 #[component]
 fn Home() -> Element {
-    rsx! {}
+    rsx! {
+        div {
+            class: "flex flex-col items-center justify-center h-screen",
+            h1 {
+                class: "text-4xl",
+                Link {
+                    to: Route::Services {},
+                    "Service List"
+                }
+            }
+            h1 {
+                class: "text-4xl",
+                Link {
+                    to: Route::HardwareStatus {},
+                    "Hardware Status"
+                }
+            }
+        }
+    }
 }

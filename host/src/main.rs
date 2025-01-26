@@ -3,6 +3,7 @@ pub mod db;
 pub mod get_ip;
 pub mod hardware_observer_client;
 pub mod status;
+pub mod systemd;
 
 use axum::extract::ws::WebSocket;
 use axum::extract::WebSocketUpgrade;
@@ -11,7 +12,6 @@ use clokwerk::{AsyncScheduler, TimeUnits};
 use config::settings;
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
-use hardware_observer_client::HardwareObserverClient;
 use poise::serenity_prelude::{self as serenity, Http};
 use sqlx::{Pool, Sqlite, SqlitePool};
 use status::Status;
@@ -19,8 +19,9 @@ use std::fmt::Write;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
 use std::time::Duration;
+use systemd::systemd_start;
+use systemd::systemd_stop;
 use tokio::join;
-use tokio::process::Command;
 use tower_http::cors::Any;
 use tower_http::cors::CorsLayer;
 
@@ -33,24 +34,28 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 #[poise::command(slash_command, guild_only)]
 async fn reboot(ctx: Context<'_>) -> Result<(), Error> {
     ctx.say("rebooting").await?;
-    Command::new(&settings().await.systemctl_path)
-        .arg("start")
-        .arg("systemd-reboot.service")
-        .output()
-        .await
-        .unwrap();
+    systemd_start("systemd-reboot").await;
     Ok(())
 }
 
 #[poise::command(slash_command, guild_only)]
 async fn shutdown(ctx: Context<'_>) -> Result<(), Error> {
     ctx.say("shutting down").await?;
-    Command::new(&settings().await.systemctl_path)
-        .arg("start")
-        .arg("systemd-poweroff.service")
-        .output()
-        .await
-        .unwrap();
+    systemd_start("systemd-poweroff").await;
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
+async fn start_minecraft(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("starting minecraft").await?;
+    systemd_start("docker-minecraft-forge").await;
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
+async fn stop_minecraft(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("stopping minecraft").await?;
+    systemd_stop("docker-minecraft-forge").await;
     Ok(())
 }
 
@@ -152,6 +157,8 @@ async fn main() {
                 subscribe_to_logs(),
                 reboot(),
                 shutdown(),
+                start_minecraft(),
+                stop_minecraft(),
             ],
             ..Default::default()
         })
