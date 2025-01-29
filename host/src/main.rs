@@ -15,6 +15,7 @@ use futures::stream::StreamExt;
 use poise::serenity_prelude::{self as serenity, Http};
 use sqlx::{Pool, Sqlite, SqlitePool};
 use status::Status;
+use systemd::systemd_restart;
 use std::fmt::Write;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
@@ -56,6 +57,13 @@ async fn start_minecraft(ctx: Context<'_>) -> Result<(), Error> {
 async fn stop_minecraft(ctx: Context<'_>) -> Result<(), Error> {
     ctx.say("stopping minecraft").await?;
     systemd_stop("docker-minecraft-forge").await;
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
+async fn restart_minecraft(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("restarting minecraft").await?;
+    systemd_restart("docker-minecraft-forge").await;
     Ok(())
 }
 
@@ -159,6 +167,7 @@ async fn main() {
                 shutdown(),
                 start_minecraft(),
                 stop_minecraft(),
+                restart_minecraft()
             ],
             ..Default::default()
         })
