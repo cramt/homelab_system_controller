@@ -12,17 +12,22 @@ use clokwerk::{AsyncScheduler, TimeUnits};
 use config::settings;
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
+use ollama_rs::generation::completion::request::GenerationRequest;
+use ollama_rs::Ollama;
 use poise::serenity_prelude::{self as serenity, Http};
+use poise::CreateReply;
 use sqlx::{Pool, Sqlite, SqlitePool};
 use status::Status;
-use systemd::systemd_restart;
 use std::fmt::Write;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
 use std::time::Duration;
+use systemd::systemd_restart;
 use systemd::systemd_start;
 use systemd::systemd_stop;
 use tokio::join;
+use tokio::sync::mpsc;
+use tokio::sync::mpsc::error::TryRecvError;
 use tower_http::cors::Any;
 use tower_http::cors::CorsLayer;
 
@@ -98,6 +103,61 @@ async fn subscribed_channels(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
+#[poise::command(slash_command, guild_only)]
+async fn llm(ctx: Context<'_>, #[description = "What to ask"] input: String) -> Result<(), Error> {
+    let (tx, mut rx) = mpsc::channel(1024);
+
+    let ollama = Ollama::default();
+
+    let mut stream = ollama
+        .generate_stream(GenerationRequest::new("mistral".to_string(), &input))
+        .await
+        .unwrap();
+
+    tokio::spawn(async move {
+        while let Some(res) = stream.next().await {
+            let responses = res.unwrap();
+            if tx
+                .send(
+                    responses
+                        .into_iter()
+                        .map(|x| x.response)
+                        .collect::<String>(),
+                )
+                .await
+                .is_err()
+            {
+                return;
+            }
+        }
+    });
+
+    let mut buffer = format!("{input}\n\n");
+    let message = ctx.say(&buffer).await?;
+    loop {
+        match rx.try_recv() {
+            Ok(s) => {
+                buffer.push_str(&s);
+            }
+            Err(TryRecvError::Empty) => {
+                message
+                    .edit(
+                        ctx,
+                        CreateReply::default().content(format!("{}...", buffer)),
+                    )
+                    .await?
+            }
+            Err(TryRecvError::Disconnected) => break,
+        }
+    }
+
+    message
+        .edit(ctx, CreateReply::default().content(buffer))
+        .await?;
+
+    Ok(())
+}
+
 async fn db_conn() -> Pool<Sqlite> {
     let pool = SqlitePool::connect(&settings().await.database_url)
         .await
@@ -167,7 +227,8 @@ async fn main() {
                 shutdown(),
                 start_minecraft(),
                 stop_minecraft(),
-                restart_minecraft()
+                restart_minecraft(),
+                llm(),
             ],
             ..Default::default()
         })
