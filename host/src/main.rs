@@ -51,6 +51,28 @@ async fn shutdown(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
+
+#[poise::command(slash_command, guild_only)]
+async fn start_valheim(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("starting valheim").await?;
+    systemd_start("docker-valheim-forge").await;
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
+async fn stop_valheim(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("stopping valheim").await?;
+    systemd_stop("docker-valheim-forge").await;
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
+async fn restart_valheim(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("restarting valheim").await?;
+    systemd_restart("docker-valheim-forge").await;
+    Ok(())
+}
+
 #[poise::command(slash_command, guild_only)]
 async fn start_minecraft(ctx: Context<'_>) -> Result<(), Error> {
     ctx.say("starting minecraft").await?;
@@ -228,6 +250,9 @@ async fn main() {
                 start_minecraft(),
                 stop_minecraft(),
                 restart_minecraft(),
+                start_valheim(),
+                stop_valheim(),
+                restart_valheim(),
                 llm(),
             ],
             ..Default::default()
