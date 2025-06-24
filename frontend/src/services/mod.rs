@@ -8,7 +8,7 @@ use service_status::ServiceStatus;
 
 #[component]
 pub fn Services() -> Element {
-    let domain = env!("BASE_DOMAIN");
+    let domain = option_env!("BASE_DOMAIN").unwrap_or("localhost:1234");
     rsx! {
         div {
             p {

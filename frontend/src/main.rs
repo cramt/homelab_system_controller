@@ -1,9 +1,9 @@
 pub mod assets;
-pub mod hardware_status;
 pub mod services;
+pub mod stream;
 
-use crate::hardware_status::HardwareStatus;
 use crate::services::Services;
+use crate::stream::Stream;
 use cmd_proc_macro::cmd_execute;
 use dioxus::prelude::*;
 
@@ -13,8 +13,8 @@ enum Route {
     Home {},
     #[route("/services")]
     Services {},
-    #[route("/hardware_status")]
-    HardwareStatus {},
+    #[route("/stream")]
+    Stream {},
 }
 
 fn main() {
@@ -45,13 +45,6 @@ fn Home() -> Element {
                 Link {
                     to: Route::Services {},
                     "Service List"
-                }
-            }
-            h1 {
-                class: "text-4xl",
-                Link {
-                    to: Route::HardwareStatus {},
-                    "Hardware Status"
                 }
             }
         }

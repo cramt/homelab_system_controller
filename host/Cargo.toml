@@ -18,6 +18,10 @@ config = "0.15"
 systemctl = "0.4"
 axum = { version = "0.8.1", features = ["ws"] }
 tower-http = { version = "0.6.2", features = ["cors"] }
-ollama-rs = { version = "0.2.5", features = ["stream"]}
+ollama-rs = { version = "0.3.1", features = ["stream"]}
 common = { path = "../common", features = ["use-std"] }
 postcard-rpc = { version = "0.11.3", features = ["use-std", "raw-nusb" ] }
+bytes = "1.10.1"
+tokio-process-stream = "0.4.0"
+tokio-util = {version = "0.7.15", features = ["io"]}
+clone-stream = "0.2.1"

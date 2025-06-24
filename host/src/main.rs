@@ -1,3 +1,4 @@
+mod asyncrtsp;
 pub mod config;
 pub mod db;
 pub mod get_ip;
@@ -5,9 +6,12 @@ pub mod hardware_observer_client;
 pub mod status;
 pub mod systemd;
 
+use axum::body::Body;
 use axum::extract::ws::WebSocket;
+use axum::extract::State;
 use axum::extract::WebSocketUpgrade;
 use axum::Router;
+use bytes::Bytes;
 use clokwerk::{AsyncScheduler, TimeUnits};
 use config::settings;
 use futures::stream::FuturesUnordered;
@@ -31,6 +35,8 @@ use tokio::sync::mpsc::error::TryRecvError;
 use tower_http::cors::Any;
 use tower_http::cors::CorsLayer;
 
+use crate::asyncrtsp::new_stream;
+
 struct Data {
     db_conn: Pool<Sqlite>,
 }
@@ -50,7 +56,6 @@ async fn shutdown(ctx: Context<'_>) -> Result<(), Error> {
     systemd_start("systemd-poweroff").await;
     Ok(())
 }
-
 
 #[poise::command(slash_command, guild_only)]
 async fn start_valheim(ctx: Context<'_>) -> Result<(), Error> {
@@ -91,6 +96,27 @@ async fn stop_minecraft(ctx: Context<'_>) -> Result<(), Error> {
 async fn restart_minecraft(ctx: Context<'_>) -> Result<(), Error> {
     ctx.say("restarting minecraft").await?;
     systemd_restart("docker-minecraft-forge").await;
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
+async fn start_gtnh(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("starting gtnh").await?;
+    systemd_start("docker-gtnh").await;
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
+async fn stop_gtnh(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("stopping gtnh").await?;
+    systemd_stop("docker-gtnh").await;
+    Ok(())
+}
+
+#[poise::command(slash_command, guild_only)]
+async fn restart_gtnh(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.say("restarting gtnh").await?;
+    systemd_restart("docker-gtnh").await;
     Ok(())
 }
 
@@ -250,6 +276,9 @@ async fn main() {
                 start_minecraft(),
                 stop_minecraft(),
                 restart_minecraft(),
+                start_gtnh(),
+                stop_gtnh(),
+                restart_gtnh(),
                 start_valheim(),
                 stop_valheim(),
                 restart_valheim(),
@@ -286,28 +315,25 @@ async fn main() {
         .await
         .unwrap();
     let http = client.http.clone();
-    //let hardware_observer_client = HardwareObserverClient::new();
     join!(
         async {
             client.start().await.unwrap();
         },
-        /*
-        async {
-            hardware_observer_client.logging_run().await;
-        },
-        async {
-            loop {
-                println!("{:?}", hardware_observer_client.ping(1).await);
-                tokio::time::sleep(Duration::from_secs(5)).await
-            }
-        },
-        */
         async {
             let app = Router::new()
                 .route(
                     "/ws",
                     axum::routing::any(|ws: WebSocketUpgrade| async {
                         ws.on_upgrade(handle_socket)
+                    }),
+                )
+                .route(
+                    "/stream",
+                    axum::routing::get(async || {
+                        axum::response::Response::builder()
+                            .header("Content-Type", "application/octet-stream")
+                            .body(Body::from_stream(new_stream(&settings().await.rtsp_stream)))
+                            .unwrap()
                     }),
                 )
                 .layer(

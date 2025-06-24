@@ -65,6 +65,7 @@
         buildInputs =
           [
             pkgs.openssl
+            pkgs.ffmpeg
           ]
           ++ lib.optionals pkgs.stdenv.isDarwin [
             pkgs.libiconv
@@ -112,6 +113,7 @@
           picotool
           screen
           dioxus-cli
+          wasm-bindgen-cli
         ];
 
         shellHook = ''
